@@ -6,23 +6,23 @@ include common.mk
 CFLAGS += -std=gnu99 -fvisibility=default
 CPPFLAGS += -I$(SRC)/include
 
-CC_LIBRARY(src/libevdev_hollow.so.0): CFLAGS += -DEVDEV_HOLLOW
-CC_LIBRARY(src/libevdev_hollow.so.0): src/libevdev.o \
-	src/libevdev_mt.o \
-	src/libevdev_event.o
+CC_LIBRARY(src/libevdevc_hollow.so.0): CFLAGS += -DEVDEV_HOLLOW
+CC_LIBRARY(src/libevdevc_hollow.so.0): src/libevdevc.o \
+	src/libevdevc_mt.o \
+	src/libevdevc_event.o
 
-CC_LIBRARY(src/libevdev.so.0): src/libevdev.o \
-	src/libevdev_mt.o \
-	src/libevdev_event.o
+CC_LIBRARY(src/libevdevc.so.0): src/libevdevc.o \
+	src/libevdevc_mt.o \
+	src/libevdevc_event.o
 
-install-lib: CC_LIBRARY(src/libevdev.so.0) CC_LIBRARY(src/libevdev_hollow.so.0)
-	install -D -m 0755 src/libevdev.so.0 $(DESTDIR)$(LIBDIR)/libevdev.so.0
-	ln -f -s libevdev.so.0 $(DESTDIR)$(LIBDIR)/libevdev.so
-	install -D -m 0755 src/libevdev_hollow.so.0 \
-		$(DESTDIR)$(LIBDIR)/libevdev_hollow.so.0
-	ln -f -s libevdev_hollow.so.0 $(DESTDIR)$(LIBDIR)/libevdev_hollow.so
+install-lib: CC_LIBRARY(src/libevdevc.so.0) CC_LIBRARY(src/libevdevc_hollow.so.0)
+	install -D -m 0755 src/libevdevc.so.0 $(DESTDIR)$(LIBDIR)/libevdevc.so.0
+	ln -f -s libevdevc.so.0 $(DESTDIR)$(LIBDIR)/libevdevc.so
+	install -D -m 0755 src/libevdevc_hollow.so.0 \
+		$(DESTDIR)$(LIBDIR)/libevdevc_hollow.so.0
+	ln -f -s libevdevc_hollow.so.0 $(DESTDIR)$(LIBDIR)/libevdevc_hollow.so
 
 setup-lib-in-place:
 	mkdir -p $(SRC)/in-place || true
-	ln -sf $(SRC)/src/libevdev_hollow.so.0 $(SRC)/in-place/libevdev_hollow.so
-	ln -sf $(SRC)/src/libevdev_hollow.so.0 $(SRC)/in-place/libevdev_hollow.so.0
+	ln -sf $(SRC)/src/libevdevc_hollow.so.0 $(SRC)/in-place/libevdevc_hollow.so
+	ln -sf $(SRC)/src/libevdevc_hollow.so.0 $(SRC)/in-place/libevdevc_hollow.so.0

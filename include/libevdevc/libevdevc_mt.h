@@ -9,7 +9,7 @@
 #define _LIBEVDEV_MT_H_
 
 #include <stdint.h>
-#include <libevdev/libevdev_log.h>
+#include <libevdevc/libevdevc_log.h>
 
 /*
  * From include/linux/input.h

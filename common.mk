@@ -110,7 +110,8 @@ NEEDS_MOUNTS = 0
 # Or
 #   make -C $SRCDIR OUT=$PWD
 # This variable is extended on subdir calls and doesn't need to be re-called.
-OUT ?= $(PWD)/
+#OUT ?= $(PWD)/
+OUT ?= .
 
 # Make OUT now so we can use realpath.
 $(shell mkdir -p "$(OUT)")

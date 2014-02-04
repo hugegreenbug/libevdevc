@@ -7,8 +7,8 @@
 #define _LIBEVDEV_H_
 
 #include <linux/input.h>
-#include <libevdev/libevdev_event.h>
-#include <libevdev/libevdev_mt.h>
+#include <libevdevc/libevdevc_event.h>
+#include <libevdevc/libevdevc_mt.h>
 
 #ifndef Success
 // from X.h
