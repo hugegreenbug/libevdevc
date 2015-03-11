@@ -65,12 +65,10 @@ int EvdevRead(EvdevPtr evdev) {
 
     /* Read as many whole struct input_event objects as we can into the
        circular buffer */
-    if (evstate->debug_buf) {
-      for (i = 0; i < len / sizeof(*ev); i++) {
-        evstate->debug_buf[evstate->debug_buf_tail] = ev[i];
-        evstate->debug_buf_tail =
-            (evstate->debug_buf_tail + 1) % DEBUG_BUF_SIZE;
-      }
+    for (i = 0; i < len / sizeof(*ev); i++) {
+      evstate->debug_buf[evstate->debug_buf_tail] = ev[i];
+      evstate->debug_buf_tail =
+          (evstate->debug_buf_tail + 1) % DEBUG_BUF_SIZE;
     }
 
     /* kernel always delivers complete events, so len must be sizeof *ev */
@@ -502,9 +500,6 @@ Absinfo_Print(EvdevPtr device, struct input_absinfo* absinfo)
  */
 static EvdevClass EvdevProbeClass(EvdevInfoPtr info) {
   int bit;
-  for (bit = 0; bit < BTN_MISC; bit++)
-    if (TestBit(bit, info->key_bitmask))
-      return EvdevClassKeyboard;
 
   if (TestBit(REL_X, info->rel_bitmask) &&
       TestBit(REL_Y, info->rel_bitmask)) {
@@ -538,6 +533,10 @@ static EvdevClass EvdevProbeClass(EvdevInfoPtr info) {
     if (TestBit(BTN_LEFT, info->key_bitmask))
       return EvdevClassTouchscreen;
   }
+
+  for (bit = 0; bit < BTN_MISC; bit++)
+    if (TestBit(bit, info->key_bitmask))
+      return EvdevClassKeyboard;
 
   return EvdevClassUnknown;
 }

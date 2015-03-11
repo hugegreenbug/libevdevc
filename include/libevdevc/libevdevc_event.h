@@ -11,6 +11,9 @@
 #include <libevdevc/libevdevc_log.h>
 #include <libevdevc/libevdevc_mt.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* 1 MiB debug buffer of struct input_event objects */
 #define DEBUG_BUF_SIZE      65536
@@ -39,6 +42,8 @@ void Event_Free(EvdevPtr);
 void Event_Open(EvdevPtr);
 bool Event_Process(EvdevPtr, struct input_event*);
 void Event_Dump_Debug_Log(void *);
+void Event_Dump_Debug_Log_To(void *, const char*);
+void Event_Clear_Debug_Log(void *);
 
 int Event_Get_Left(EvdevPtr);
 int Event_Get_Right(EvdevPtr);
@@ -57,9 +62,14 @@ int Event_Get_Slot_Count(EvdevPtr);
 int Event_Get_Button_Left(EvdevPtr);
 int Event_Get_Button_Middle(EvdevPtr);
 int Event_Get_Button_Right(EvdevPtr);
+int Event_Get_Button(EvdevPtr, int button);
 void Event_Sync_State(EvdevPtr);
 const char* Event_To_String(int type, int code);
 const char* Event_Type_To_String(int type);
 const char* Evdev_Get_Version();
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif
 
 #endif

@@ -53,6 +53,8 @@ static void Event_Rel(EvdevPtr, struct input_event*);
 
 static void Event_Get_Time(struct timeval*, bool);
 
+static int Event_Is_Valid(struct input_event*);
+
 const char*
 Evdev_Get_Version() {
     return VCSID;
@@ -180,19 +182,25 @@ Event_Get_Slot_Count(EvdevPtr device)
 int
 Event_Get_Button_Left(EvdevPtr device)
 {
-    return TestBit(BTN_LEFT, device->key_state_bitmask);
+    return Event_Get_Button(device, BTN_LEFT);
 }
 
 int
 Event_Get_Button_Middle(EvdevPtr device)
 {
-    return TestBit(BTN_MIDDLE, device->key_state_bitmask);
+    return Event_Get_Button(device, BTN_MIDDLE);
 }
 
 int
 Event_Get_Button_Right(EvdevPtr device)
 {
-    return TestBit(BTN_RIGHT, device->key_state_bitmask);
+    return Event_Get_Button(device, BTN_RIGHT);
+}
+
+int
+Event_Get_Button(EvdevPtr device, int button)
+{
+    return TestBit(button, device->key_state_bitmask);
 }
 
 #define CASE_RETURN(s) \
@@ -249,6 +257,10 @@ Event_To_String(int type, int code) {
         CASE_RETURN(BTN_LEFT);
         CASE_RETURN(BTN_RIGHT);
         CASE_RETURN(BTN_MIDDLE);
+        CASE_RETURN(BTN_BACK);
+        CASE_RETURN(BTN_FORWARD);
+        CASE_RETURN(BTN_EXTRA);
+        CASE_RETURN(BTN_SIDE);
         CASE_RETURN(BTN_TOUCH);
         CASE_RETURN(BTN_TOOL_FINGER);
         CASE_RETURN(BTN_TOOL_DOUBLETAP);
@@ -389,9 +401,11 @@ Event_Sync_State(EvdevPtr device)
         MT_Slot_Sync(device, &req);
     }
 
-    /* Get current slot id */
-    if (EvdevProbeAbsinfo(device, ABS_MT_SLOT) == Success)
+    /* Get current slot id for multi-touch devices*/
+    if (TestBit(ABS_MT_SLOT, device->info.abs_bitmask) &&
+        (EvdevProbeAbsinfo(device, ABS_MT_SLOT) == Success)) {
         MT_Slot_Set(device, device->info.absinfo[ABS_MT_SLOT].value);
+    }
 
     Event_Get_Time(&device->after_sync_time, device->info.is_monotonic);
 
@@ -453,6 +467,12 @@ bool
 Event_Process(EvdevPtr device, struct input_event* ev)
 {
     Event_Print(device, ev);
+    if (Event_Is_Valid(ev)) {
+        if (!(ev->type == EV_SYN && ev->code == SYN_REPORT))
+            device->got_valid_event = 1;
+    } else {
+        return false;
+    }
 
     switch (ev->type) {
     case EV_SYN:
@@ -480,14 +500,19 @@ Event_Process(EvdevPtr device, struct input_event* ev)
  * Dump the log of input events to disk
  */
 void
-Event_Dump_Debug_Log(void* vinfo)
+Event_Dump_Debug_Log(void* vinfo) {
+    Event_Dump_Debug_Log_To(vinfo, "/var/log/xorg/cmt_input_events.dat");
+}
+
+void
+Event_Dump_Debug_Log_To(void* vinfo, const char* filename)
 {
     EvdevPtr device = (EvdevPtr) vinfo;
     size_t i;
     int ret;
     EventStatePtr evstate = device->evstate;
 
-    FILE* fp = fopen("/var/log/xorg/cmt_input_events.dat", "wb");
+    FILE* fp = fopen(filename, "wb");
     if (!fp) {
         LOG_ERROR(device, "fopen() failed for debug log");
         return;
@@ -510,6 +535,19 @@ Event_Dump_Debug_Log(void* vinfo)
         }
     }
     fclose(fp);
+}
+
+/**
+ * Clear Debug Buffer
+ */
+void
+Event_Clear_Debug_Log(void* vinfo)
+{
+    EvdevPtr device = (EvdevPtr) vinfo;
+    EventStatePtr evstate = device->evstate;
+
+    memset(evstate->debug_buf, 0, sizeof(evstate->debug_buf));
+    evstate->debug_buf_tail = 0;
 }
 
 /**
@@ -557,11 +595,13 @@ static void
 Event_Syn_Report(EvdevPtr device, struct input_event* ev)
 {
     EventStatePtr evstate = device->evstate;
-    device->syn_report(device->syn_report_udata, evstate, &ev->time);
+    if (device->got_valid_event)
+        device->syn_report(device->syn_report_udata, evstate, &ev->time);
 
     MT_Print_Slots(device);
 
     Event_Clear_Ev_Rel_State(device);
+    device->got_valid_event = 0;
 }
 
 static void
@@ -655,4 +695,13 @@ Event_Rel(EvdevPtr device, struct input_event* ev)
         evstate->rel_hwheel = ev->value;
         break;
     }
+}
+
+static int Event_Is_Valid(struct input_event* ev)
+{
+    /* Key repeats are invalid. They're handled by X anyway */
+    if (ev->type == EV_KEY &&
+        ev->value == 2)
+        return 0;
+    return 1;
 }

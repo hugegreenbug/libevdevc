@@ -10,6 +10,10 @@
 #include <libevdevc/libevdevc_event.h>
 #include <libevdevc/libevdevc_mt.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef Success
 // from X.h
 #define Success 0
@@ -52,6 +56,7 @@ typedef struct EvdevInfo_ EvdevInfo, *EvdevInfoPtr;
 struct Evdev_ {
   syn_report_callback syn_report;
   void* syn_report_udata;
+  int got_valid_event;
 
   log_callback log;
   void* log_udata;
@@ -82,5 +87,9 @@ int EvdevWriteEventToFile(FILE* file, const struct input_event* event);
 
 int EvdevReadInfoFromFile(FILE* file, EvdevInfoPtr info);
 int EvdevReadEventFromFile(FILE* file, struct input_event* event);
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif
 
 #endif

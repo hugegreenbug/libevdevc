@@ -21,6 +21,8 @@ install-lib: CC_LIBRARY(src/libevdevc.so.0) CC_LIBRARY(src/libevdevc_hollow.so.0
 	install -D -m 0755 src/libevdevc_hollow.so.0 \
 		$(DESTDIR)$(LIBDIR)/libevdevc_hollow.so.0
 	ln -f -s libevdevc_hollow.so.0 $(DESTDIR)$(LIBDIR)/libevdevc_hollow.so
+	install -D -m 0644 $(SRC)/libevdevc-cros.pc \
+			$(DESTDIR)$(LIBDIR)/pkgconfig/libevdevc-cros.pc
 
 setup-lib-in-place:
 	mkdir -p $(SRC)/in-place || true
